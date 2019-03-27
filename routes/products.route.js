@@ -13,7 +13,7 @@ router.post('/', product_controller.product_create);
 router.get('/:id', product_controller.product_details);
 router.put('/:id/update', product_controller.product_update);
 router.delete('/:id/delete', product_controller.product_delete);
-
+router.options('/', product_controller.product_options);
 
 module.exports = router;
 

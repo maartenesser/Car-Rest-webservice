@@ -14,23 +14,16 @@ mongoose.Promise = global.Promise;
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use('/products', product);
-// app.use(cors({
-//     'allowedHeaders': ['application/json', 'application/x-www-form-urlencoded'],
-//     'Access-Control-Allow-Methods': ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
-//     'origin': '*'
-//     // 'methods': ['GET','PUT','POST','DELETE']
-// }));
-// app.options('/*', function (req, res) {
-//     res.header('Access-Control-Allow-Origin', '*');
-//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-//     res.
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     res.send(200)
-// });
+
+//TODO: CORS Collection => geen Access-Control-Allow-Origin & Access-Control-Allow-Headers
+app.use(cors({
+    origin: 'http://35.176.134.17:8081/products/',
+    accept: 'application/json',
+    allow: 'Origin, X-Requested-With, Content-Type, Accept'
+}));
 
 let port = 8081;
 let host = '172.26.13.147';

@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 let ProductSchema = new Schema({
-    brand: {type: String, required: true, max: 100},
-    model: {type: String, required: true},
-    price: {type: Number, required: true},
+    brand: {type: String, required: true, max: 100, exists: true},
+    model: {type: String, required: true, exists: true},
+    price: {type: Number, required: true, exists: true},
 });
 
 
