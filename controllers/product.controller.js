@@ -1,7 +1,6 @@
 const Product = require('../models/product.model');
 const mongoose = require('mongoose');
 
-
 //OPTIONS Method
 exports.product_options = function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -51,11 +50,11 @@ exports.product_create =
 // product GET
 // ACCESS VIA POSTMAN: .../products/
 
-exports.product_list = function (req, res, next) {
+exports.product_list = function (req, res) {
     console.log('GET /product/');
 
     var perPage = 9;
-    var page = req.params.page || 1;
+    var page = req.params.page;
 
     Product.find({})
         .skip((perPage * page) - perPage)
@@ -70,13 +69,12 @@ exports.product_list = function (req, res, next) {
                 }
                 res.status(200).json({
                     cars: products,
+                    total_items: count,
                     current_page: page,
                     total_pages: Math.ceil(count / perPage)
                 });
             })
         });
-
-
 };
 
 //product GET

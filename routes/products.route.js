@@ -6,6 +6,8 @@ const cors = require('cors');
 // Require the controllers WHICH WE DID NOT CREATE YET!!
 const product_controller = require('../controllers/product.controller');
 
+
+
 // a simple test url to check that all files are talking correctely.
 // router.get('/test', product_controller.test);
 router.get('/:page',product_controller.product_list);
