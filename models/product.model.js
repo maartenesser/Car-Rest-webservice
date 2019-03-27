@@ -9,4 +9,8 @@ let ProductSchema = new Schema({
 
 
 // Export the model
-module.exports = mongoose.model('Product', ProductSchema);
+const product = module.exports = mongoose.model('Product', ProductSchema);
+
+module.exports.get = function (callback, limit) {
+    product.find(callback).limit(limit);
+};

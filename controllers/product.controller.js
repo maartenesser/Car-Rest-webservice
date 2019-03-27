@@ -1,4 +1,6 @@
 const Product = require('../models/product.model');
+const mongoose = require('mongoose');
+
 
 //OPTIONS Method
 exports.product_options = function (req, res, next) {
@@ -32,12 +34,14 @@ exports.product_create =
         product.price = req.body.price;
 
         product.save(function (err) {
-            if (err) {
-                res.status(500).send("There was a problem adding the information to the database. Please check everything again and retry.");
-                return;
+            if (req.body.brand == null || req.body.model == null || req.body.price == null) {
+                return res.status(400).send("There was a bad request please try again")
+            }
+            else if (err) {
+                return res.status(500).send("There was a problem adding the information to the database. Please check everything again and retry.");
             }
             else {
-                res.status(200).json(product)
+                return res.status(201).json(product)
             }
 
         });
@@ -50,20 +54,29 @@ exports.product_create =
 exports.product_list = function (req, res, next) {
     console.log('GET /product/');
 
-    Product.find({}, (function (err, result) {
+    var perPage = 9;
+    var page = req.params.page || 1;
 
-        if (err) {
-            return res.status(500).send("There was a problem finding the car.");
-        }
-        if (!result) {
-            return res.status(404).send("No Car found.");
-        }
-        else {
+    Product.find({})
+        .skip((perPage * page) - perPage)
+        .limit(perPage)
+        .exec(function (err, products) {
+            Product.count().exec(function (err, count) {
+                if (err) {
+                    return res.status(500).send("There was a problem finding the car.");
+                }
+                if (!products) {
+                    return res.status(404).send("No Car found.");
+                }
+                res.status(200).json({
+                    cars: products,
+                    current_page: page,
+                    total_pages: Math.ceil(count / perPage)
+                });
+            })
+        });
 
 
-            return res.status(200).json(result);
-        }
-    }))
 };
 
 //product GET
@@ -76,8 +89,8 @@ exports.product_details = function (req, res, next) {
         }
 
         else {
-            res.status(200).json(product);
-            console.log("Car "+ product._id +" detail")
+            return res.status(200).json(product);
+            // console.log("Car "+ product._id +" detail")
         }
     })
 };
@@ -92,7 +105,7 @@ exports.product_update = function (req, res) {
             return res.status(500).send("There was an error updating the Car.")
         }
         else {
-            res.status(200).json({message: 'Product '+product._id+' was updated.'});
+            return res.status(200).json({message: 'Product ' + product._id + ' was updated.'});
         }
     });
 
@@ -103,9 +116,12 @@ exports.product_update = function (req, res) {
 // (DELETE)
 exports.product_delete = function (req, res) {
     Product.findByIdAndRemove(req.params.id, function (err) {
-        if (err)
-            return res.status(500).send("There was an error Deleting the specific car.");
-        res.status(200).json({message: res.brand + 'and model' + res.model + ' was successfully deleted!'});
+        if (err) {
+            return res.status(500).send("There was an error Deleting the specific car.")
+        }
+        else {
+            res.status(200).json({message: res.brand + 'and model' + res.model + ' was successfully deleted!'})
+        }
     })
 };
 
