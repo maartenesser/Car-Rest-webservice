@@ -1,7 +1,6 @@
+
 const Product = require('../models/product.model');
 const mongoose = require('mongoose');
-// var js2xmlparser = require('js2xmlparser');
-
 
 //OPTIONS Method
 exports.product_options = function (req, res, next) {
@@ -10,7 +9,7 @@ exports.product_options = function (req, res, next) {
     res.header('Allow', 'GET ,POST ,OPTIONS');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Keep-Alive', 'timeout=5, max=100');
-    res.header('Content-Type', 'text/html; charser-UTF-8');
+    res.header('Content-Type', 'text/html,application/x-www-form-urlencoded; charser-UTF-8');
     //intercepts OPTIONS method
     if ('OPTIONS' === req.method) {
         //respond with 200
@@ -21,6 +20,8 @@ exports.product_options = function (req, res, next) {
         next();
     }
 };
+
+
 
 //product POST
 //ACCESS VIA POSTMAN: localhost:1234/products/create
@@ -41,10 +42,10 @@ exports.product_create =
                 return res.status(500).send("There was a problem adding the information to the database. Please check everything again and retry.");
             }
             else {
-                return res.status(201).send(product)
+                return res.header('Content-Type','application/json').status(201).send(product)
             }
-
         });
+
     };
 
 //GET All cars in DB.
@@ -52,7 +53,7 @@ exports.product_create =
 // ACCESS VIA POSTMAN: .../products/
 exports.product_list = function (req, res) {
 
-    var perPage = parseInt(req.query.per_page) || 9;
+    var perPage = parseInt(req.query.per_page);
     var page = parseInt(req.query.page) || 1;
 
     Product.find({})
@@ -72,12 +73,12 @@ exports.product_list = function (req, res) {
                 var totalPages = Math.ceil(count / perPage);
                 //
                 //looping throught evey seperate car add link and then push into array cars
-                for (var i = 0; i < products.length; i++) {
-                    var brand = products[i].brand;
-                    var model = products[i].model;
-                    var price = products[i].price;
-                    var id = products[i]._id;
-                    var _links = {
+               for (let i = 0; i < products.length; i++) {
+                    let brand = products[i].brand;
+                    let model = products[i].model;
+                    let price = products[i].price;
+                    let id = products[i]._id;
+                    let _links = {
                         self: {
                             href: 'http://35.176.134.17:8081/products/' + id
                         },
@@ -112,7 +113,7 @@ exports.product_list = function (req, res) {
                             href: 'http://35.176.134.17:8081/products/'
                         },
                         previous: {
-                            page: page - 1,
+                            page: page,
                             href: 'http://35.176.134.17:8081/products/'
                         }
                     },
@@ -122,7 +123,8 @@ exports.product_list = function (req, res) {
                     }
                 };
 
-                if (req.header('Accept', 'application/json')) {
+                if (req.accepts('application/json')) {
+                    console.log("sent json file");
                     res.header('Content-Type', 'application/json');
                     //Showing response in json format
                     res.status(200).json({
@@ -130,17 +132,20 @@ exports.product_list = function (req, res) {
                         _links: _link,
                         pagination: pagination
                     });
-                } else {
-                    return res.status(500).send("There was a problem finding the car.");
                 }
-                //TODO: XML model Accept only XML and return data as XML
-                // else if (req.accepts('application/xml')) {
-                //     // res.set('Content-Type', 'text/xml');
-                //     // res.type('application/xml');
-                //     // var xmlCars = js2xmlparser.parse("test", cars);
-                //     // res.status(200).send(xmlCars);
-                //     // console.log(xmlCars);
-                // }
+                else if (req.accepts('application/xml')) {
+                    console.log("sent xml File");
+                    // for (let j = 0; j < cars.length ; j++) {
+                    // res.header('Content-Type','text/xml').status(200).send(cars);
+                    //
+
+                    // }
+                  //TODO: Krijg het niet voor elkaar om mijn json object als xml bestand te exporteren
+                    res.status(200).send("XML cars response sent");
+                }
+                else {
+                    return res.status(406).send("Unsupported format");
+                }
             })
         })
 };
