@@ -7,8 +7,7 @@ exports.product_options = function (req, res) {
     res.header("Access-Control-Allow-Methods", ["GET", "POST" , "OPTIONS"]);
     res.header("Allow", "GET ,POST ,OPTIONS");
     res.header("Access-Control-Allow-Credentials", true);
-    // res.header("Access-Control-Allow-Headers", ["Content-Type", "text/html"]);
-    // res.header("Keep-Alive", "timeout=5, max=100");
+    res.header("Keep-Alive", "timeout=5, max=100");
     //intercepts OPTIONS method
     if ("OPTIONS" === req.method)
     //respond with 200
@@ -128,7 +127,7 @@ exports.product_list = (req, res) => {
                 });
             });
     } else {
-        res.sendStatus(400);
+        res.sendStatus(400)
     }
 };
 
@@ -257,7 +256,7 @@ exports.product_update = (req, res) => {
                     message: "Car not found with id " + req.params.id
                 });
             }
-            if (!req.body.brand || !req.body.model || !req.body.price) {
+            if (!req.body.brand || !req.body.model || !req.body.price || !req.body.status) {
                 return res.header("Access-Control-Allow-Origin", "*").status(400).send("Fill in all fields for a Car");
             } else {
                 product.brand = req.body.brand;
@@ -266,7 +265,7 @@ exports.product_update = (req, res) => {
                 product.save();
                 let nProduct = product.toJSON();
 
-                res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html").status(200).json(nProduct);
+                res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html").json(nProduct);
             }
         })
         .catch(err => {

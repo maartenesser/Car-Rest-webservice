@@ -25,6 +25,7 @@ app.use('/products', product);
 
 app.get('/', (req, res) => {
     res.json({"message": "API"});
+    console.log(req.body);
 });
 
 // app.use(function(req, res) {
