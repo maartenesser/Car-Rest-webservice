@@ -7,7 +7,6 @@ let ProductSchema = new Schema({
     price: {type: String, required: true, exists: true},
 });
 
-
 // Export the model
 const product = module.exports = mongoose.model('Product', ProductSchema);
 

@@ -4,15 +4,26 @@ const Product = require("../models/product.model");
 exports.product_options = function (req, res) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html");
-    res.header("Access-Control-Allow-Methods", ["GET", "POST" , "OPTIONS"]);
+    res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    res.header("Access", "GET, POST,OPTIONS");
     res.header("Allow", "GET ,POST ,OPTIONS");
     res.header("Access-Control-Allow-Credentials", true);
     res.header("Keep-Alive", "timeout=5, max=100");
+
     //intercepts OPTIONS method
     if ("OPTIONS" === req.method)
-    //respond with 200
         res.status(200).send();
 };
+
+exports.product_options_detail = function (req, res) {
+    res.header('Access-Control-Allow-Methods', "GET,PUT,DELETE,OPTIONS");
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header("Allow", "GET,PUT,DELETE,OPTIONS");
+    res.header('Access-Control-Allow-Headers', "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Origin', '*');
+    res.sendStatus(200);
+};
+
 
 //product POST
 //ACCESS VIA POSTMAN: localhost:1234/products/create
@@ -25,19 +36,18 @@ exports.product_create = (req, res) => {
         });
     }
 
-    let product = new Product({
-        brand: req.body.brand,
-        model: req.body.model,
-        price: req.body.price
-    });
+    let product = new Product();
+    product.brand = req.body.brand;
+    product.model = req.body.model;
+    product.price = req.body.price;
 
     product.save()
         .then(product => {
             res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html").status(201).send(product);
         })
-        .catch(err => {
+        .catch(error => {
             res.header("Access-Control-Allow-Origin", "*").status(500).send({
-                message: err.message || "There was a problem adding the information to the database. Please check everything again and retry."
+                message: error.message || "There was a problem adding the information to the database. Please check everything again and retry."
             })
         })
 };
@@ -49,47 +59,26 @@ exports.product_list = (req, res) => {
     if (req.accepts("json")) {
         Product.find()
             .then(products => {
-
-                let startAt = 0;
-                if (req.query.start) {
-                    startAt = req.query.start;
+                var cars = [];
+                for (let i = 0; i < products.length; i++) {
+                    let brand = products[i].brand;
+                    let model = products[i].model;
+                    let price = products[i].price;
+                    let id = products[i]._id;
+                    let _links = {
+                        self: {
+                            href: req.protocol + "://" + req.headers.host + "/products/" + id
+                        },
+                        collection: {
+                            href: req.protocol + "://" + req.headers.host + "/products/"
+                        }
+                    };
+                    let car = {id, brand, model, price, _links};
+                    cars.push(car);
                 }
 
-                let loopedCars = 0;
-                let returnCars = [];
-                products.forEach(function (element) {
-                    if (startAt > loopedCars) {
-                        loopedCars++;
-                        return;
-                    }
-                    let newProduct = element.toJSON();
-                    newProduct._links = {};
-                    newProduct._links.self = {href: req.protocol + "://" + req.headers.host + "/products/" + newProduct._id};
-                    newProduct._links.collection = {href: req.protocol + "://" + req.headers.host + "/products/"};
-                    returnCars.push(newProduct)
-                });
-
-
-                // var cars = [];
-                // for (let i = 0; i < products.length; i++) {
-                //     let brand = products[i].brand;
-                //     let model = products[i].model;
-                //     let price = products[i].price;
-                //     let id = products[i]._id;
-                //     let _links = {
-                //         self: {
-                //             href: req.protocol + "://" + req.headers.host + "/products/" + id
-                //         },
-                //         collection: {
-                //             href: req.protocol + "://" + req.headers.host + "/products/"
-                //         }
-                //     };
-                //
-                //     var car = {id, brand, model, price, _links};
-                //     cars.push(car);
-
                 res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html").json({
-                    items: returnCars,
+                    items: cars,
                     _links: {
                         self: {
                             href: req.protocol + "://" + req.headers.host + req.originalUrl
@@ -121,92 +110,15 @@ exports.product_list = (req, res) => {
                     }
                 })
             })
-            .catch(err => {
+            .catch(error => {
                 res.status(500).send({
-                    message: err.message || "There was an error when finding cars"
+                    message: error.message || "There was an error when finding cars"
                 });
             });
     } else {
         res.sendStatus(400)
     }
 };
-
-// .exec(function (err, products) {
-//
-//         Product.count().exec(function (err, count) {
-//                 if (err) {
-//                     return res.status(500).send("There was a problem finding the car.");
-//                 }
-//                 if (!products) {
-//                     return res.status(404).send("No Car found.");
-//                 }
-//
-//                 var cars = [];
-//                 for (let i = 0; i < products.length; i++) {
-//                     let brand = products[i].brand;
-//                     let model = products[i].model;
-//                     let price = products[i].price;
-//                     let id = products[i]._id;
-//                     let _links = {
-//                         self: {
-//                             href: req.protocol + "://" + req.headers.host + "/products/" + id
-//                         },
-//                         collection: {
-//                             href: req.protocol + "://" + req.headers.host + "/products/"
-//                         }
-//                     };
-//
-//                     var car = {id, brand, model, price, _links};
-//                     cars.push(car);
-//                 }
-//
-//                 if (req.accepts("application/json")) {
-//                     console.log("sent json file");
-//                     res.header("Access-Control-Allow-Origin", "*").json({
-//                         items: cars,
-//                         _links: {
-//                             self: {
-//                                 href: req.protocol + "://" + req.headers.host + req.originalUrl
-//                             }
-//                         },
-//                         pagination: {
-//                             currentPage: 1,
-//                             currentItems: count,
-//                             totalPages: 1,
-//                             totalItems: count,
-//                             _links: {
-//                                 first: {
-//                                     page: 1,
-//                                     href: req.protocol + "://" + req.headers.host + "/products/"
-//                                 },
-//                                 last: {
-//                                     page: 1,
-//                                     href: req.protocol + "://" + req.headers.host + "/products/"
-//                                 },
-//                                 previous: {
-//                                     page: 1,
-//                                     href: req.protocol + "://" + req.headers.host + "/products/"
-//                                 }
-//                             },
-//                             next: {
-//                                 page: 1,
-//                                 href: req.protocol + "://" + req.headers.host + "/products/"
-//                             }
-//                         }
-//                     })
-//                 }
-//             }
-//         )
-//     }
-// )
-//
-// } else
-// {
-//     res.sendStatus(400)
-// }
-// }
-// ;
-
 
 //product GET
 // ACCESS VIA POASTMAN:  /products/<PRODUCT_ID>
@@ -217,19 +129,23 @@ exports.product_details = (req, res) => {
                 return res.header("Access-Control-Allow-Origin", "*").status(404).send({
                     message: "There was an error getting the precise car" + req.params.id
                 })
-            }
-            res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html").status(200).json({
-                product: product,
-                _links: {
-                    self: {
-                        href: req.protocol + "://" + req.headers.host + "/products/" + req.params.id
-                    },
-                    collection: {
-                        href: req.protocol + "://" + req.headers.host + "/products/"
-                    }
-                }
-            });
 
+            }
+            res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, text/html").json(
+                {
+                    id: product._id,
+                    brand: product.brand,
+                    model: product.model,
+                    price: product.price,
+                    _links: {
+                        self: {
+                            href: req.protocol + "://" + req.headers.host + "/products/" + req.params.id
+                        },
+                        collection: {
+                            href: req.protocol + "://" + req.headers.host + "/products/"
+                        }
+                    }
+                })
         })
         .catch(err => {
             if (err.kind === "CarId") {
@@ -256,16 +172,20 @@ exports.product_update = (req, res) => {
                     message: "Car not found with id " + req.params.id
                 });
             }
-            if (!req.body.brand || !req.body.model || !req.body.price || !req.body.status) {
+            if (!req.body.brand || !req.body.model || !req.body.price) {
                 return res.header("Access-Control-Allow-Origin", "*").status(400).send("Fill in all fields for a Car");
             } else {
                 product.brand = req.body.brand;
                 product.model = req.body.model;
                 product.price = req.body.price;
                 product.save();
-                let nProduct = product.toJSON();
 
-                res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, text/html").json(nProduct);
+                res.header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, text/html").json({
+                    id: product._id,
+                    brand: product.brand,
+                    model: product.model,
+                    price: product.price,
+                });
             }
         })
         .catch(err => {
@@ -273,13 +193,11 @@ exports.product_update = (req, res) => {
                 return res.header("Access-Control-Allow-Origin", "*").status(404).send({
                     message: "Car not found with id " + req.params.id
                 })
-            } else {
-                return res.header("Access-Control-Allow-Origin", "*").status(500).send({
-                    message: "Error retrieving car with id " + req.params.id
-                });
             }
+            return res.header("Access-Control-Allow-Origin", "*").status(500).send({
+                message: "Error retrieving car with id " + req.params.id
+            });
         });
-
 };
 
 //product DELETE
