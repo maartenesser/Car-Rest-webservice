@@ -6,7 +6,7 @@ const app = express();
 
 // Set up mongoose connection
 const mongoose = require('mongoose');
-let dev_db_url = 'mongodb+srv://maartenesser:konijnen13@cluster0-2e6sd.mongodb.net/cars?retryWrites=true';
+let dev_db_url = 'Mongodb database';
 let mongoDB = process.env.MONGODB_URI || dev_db_url;
 mongoose.connect(mongoDB);
 
